@@ -86,7 +86,7 @@ class Engranaje:
         # función para que se refresque la posición de los rotores en el engranaje.
         self.configAct = ""
         for item in range(self.numRotores):
-            self.configAct += self.rotores[item].posActual
+            self.configAct += self.rotores[item].posAct
 
 class Rotor:
  
@@ -96,11 +96,16 @@ class Rotor:
     # Dispone de 8 rotores + 1 reflector prefabricados, guardados  #
     # en una estructura de diccionario como atributo privado.      #
     #                                                              #
-    # Al crear un objeto genera un rotor con conexiones            #
-    # aleatorias.                                                  #
+    # Al crear un objeto, por defecto genera un rotor con          # 
+    # conexiones aleatorias. Si recibe un parametro en tipo <> 0   #
+    # entonces genera un reflector con conexiones aleatorias       #
     #                                                              #
-    # Le falta definir un método que genere conexiones de rotor o  #
-    # reflector, según un parámetro de entrada.                    #
+    # Mediante el método montarConexiones() se puede asignar un    #
+    # rotor o reflector prefabricado y definir su posición y su    #
+    #                                                              #
+    # Mediane el método configRotor() se puede posicionar el rotor #
+    # en una posición concreta y asignarle las posiciones de       #
+    # arrastre que se quieran aplicar.                             #
     #                                                              #
     ################################################################  
 
@@ -118,54 +123,81 @@ class Rotor:
 
     arrastrarRotorSiguiente = False
 
-    def __init__(self, alfabeto="ABCDEFGHIJKLMNÑOPQRSTUVWXYZ"):
-        self.tipo = "0"
+    def __init__(self, tipo = 0, alfabeto="ABCDEFGHIJKLMNÑOPQRSTUVWXYZ"):
         self.posIni="A"
-        self.posActual = self.posIni
-        self.conexiones = ["",""]    
-        self.conexiones[0]=alfabeto
-        self.posArrastre=self.conexiones[0][-1]
-        listaAux = list(self.conexiones[0])
-        for item in self.conexiones[0]:
-            indice = random.randrange(len(listaAux))
-            self.conexiones[1] += listaAux[indice]
-            listaAux.pop(indice)
-    
+        self.posAct = self.posIni
+        self.conexiones = self.__conexiones(0,alfabeto)
+        if tipo == 0:
+            self.tipo = "Rotor Aleatorio"
+            self.posArrastre = self.conexiones[0][-1]
+        else:
+            self.tipo = "Reflector Aleatorio"
+            self.posArrastre = ""
+
     def codifica(self, clave):
         posClave = self.conexiones[0].index(clave)
-        posRotor = self.conexiones[0].index(self.posActual)
+        posRotor = self.conexiones[0].index(self.posAct)
         claveAux = self.conexiones[0][(posClave + posRotor) % len(self.conexiones[0])]
         posicion = self.conexiones[0].index(claveAux)
         return self.conexiones[1][posicion]
         
     def decodifica(self, clave):
         posClave = self.conexiones[1].index(clave)
-        posRotor = self.conexiones[0].index(self.posActual)
+        posRotor = self.conexiones[0].index(self.posAct)
         claveAux = self.conexiones[1][(posClave - posRotor) % len(self.conexiones[0])]
         posicion = self.conexiones[1].index(claveAux)
         return self.conexiones[0][posicion]
     
     def avanza(self):
-        if self.posActual in self.posArrastre:
+        if self.posAct in self.posArrastre:
             self.arrastrarRotorSiguiente = True 
-        posRotor = self.conexiones[0].index(self.posActual)
+        posRotor = self.conexiones[0].index(self.posAct)
         claveAux = self.conexiones[0][(posRotor+1) % len(self.conexiones[0])]
         posicion = self.conexiones[0].index(claveAux)
-        self.posActual = self.conexiones[0][posicion]
+        self.posAct = self.conexiones[0][posicion]
     
-    def configRotor(self, tipo="", posicion = "A", arrastre = ""):
-        # Pendiente de arreglar la configuración para modificar propiedades de rotores aleatorios
-        if tipo in self.__rotoresPref:
-            self.tipo = tipo
-            self.posIni = posicion
-            self.posActual = self.posIni            
-            self.conexiones = self.__rotoresPref[tipo]
-            if arrastre in self.conexiones[0] and arrastre != "":
-                self.posArrastre = arrastre
-            else:
-                self.posArrastre = self.conexiones[0][-1]
+    def montarConexiones(self, referencia):
+        if referencia in self.__rotoresPref:
+            self.tipo = referencia
+            self.posIni = self.__rotoresPref[referencia][0][0]
+            self.posAct = self.posIni            
+            self.conexiones = self.__rotoresPref[referencia]
+            self.posArrastre = self.conexiones[0][-1]
         else:
-            return [self.tipo,self.conexiones,self.posicion,self.posIni,self.posAct,self.posArrastre,]
+            return [self.tipo,self.conexiones,self.posIni,self.posAct,self.posArrastre]
+    
+    def configRotor(self, posicion = None, arrastre = None):
+        if posicion in self.conexiones[0]:
+            self.posAct = posicion[0]
+            if arrastre != None:
+                for item in arrastre:
+                    if item in self.conexiones[0]:
+                        self.posArrastre += item
+        else:
+            return [self.tipo,self.conexiones,self.posIni,self.posAct,self.posArrastre]
+
+    def __conexiones(self, tipo, alfabeto):
+        conexiones=[alfabeto,""]
+        listaAux = list(alfabeto)
+        if tipo == 0: # Consideramos que es un rotor.
+            for item in alfabeto:
+                indice = random.randrange(len(listaAux))
+                conexiones[1] += listaAux[indice]
+                listaAux.pop(indice)
+        else: # Si tipo !=0 consideramos que es un reflector.
+            for indiceAlfabeto in range(0,len(alfabeto)):
+                try: # Intentamos asignación aleatoria de un caracter disponible.
+                    listaAux.remove(alfabeto[indiceAlfabeto]) # El propio caracter no.
+                    indice = random.randrange(len(listaAux))
+                    conexiones[1] += listaAux[indice]
+                    listaAux.pop(indice) # Si se ha asignado uno ya no estará disponible.
+                except: # Caracter ya había sido asignado, hay que buscar su par.
+                    try:
+                        conexiones[1] += alfabeto[conexiones[1].index(alfabeto[indiceAlfabeto])]
+                    except: # Si el alfabeto es impara hay que asociar una letra consigo misma.
+                        conexiones[1] += alfabeto[indiceAlfabeto]
+                indiceAlfabeto += 1 
+        return conexiones
 
 def mainApp ():
 
@@ -175,10 +207,10 @@ def mainApp ():
     r2 = Rotor()
     r3 = Rotor()
     reflector = Rotor()
-    r1.configRotor("3")
-    r2.configRotor("7")
-    r3.configRotor("5")
-    reflector.configRotor("R")
+    r1.montarConexiones("3")
+    r2.montarConexiones("7")
+    r3.montarConexiones("5")
+    reflector.montarConexiones("R")
     engranaje = Engranaje()
     engranaje.configEngranaje([r1,r2,r3,reflector],"AAA")
 
@@ -193,9 +225,10 @@ def mainApp ():
     print(textoencriptado)
     
     # Reconfiguramos la máquina a su posición inicial.
-    r1.configRotor("3")
-    r2.configRotor("7")
-    r3.configRotor("5")
+    r1.montarConexiones("3")
+    r2.montarConexiones("7")
+    r3.montarConexiones("5")
+    reflector.montarConexiones("R")
     engranaje.configEngranaje([r1,r2,r3,reflector],"AAA")
     
     # Volvemos a codificar el texto encriptado.
@@ -208,5 +241,4 @@ def mainApp ():
 if __name__ == "__main__":
 
     mainApp()
-
     
