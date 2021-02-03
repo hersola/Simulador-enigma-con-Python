@@ -139,7 +139,9 @@ class Rotor:
         "RB" :   ["ABCDEFGHIJKLMNOPQRSTUVWXYZ", "YRUHQSLDPXNGOKMIEBFZCWVJAT"], 
         "RC" :   ["ABCDEFGHIJKLMNOPQRSTUVWXYZ", "FVPJIAOYEDRZXWGCTKUQSBNMHL"], 
         "RBEs" : ["ABCDEFGHIJKLMNOPQRSTUVWXYZ", "ENKQAUYWJICOPBLMDXZVFTHRGS"], 
-        "RCEs" : ["ABCDEFGHIJKLMNOPQRSTUVWXYZ", "RDOBJNTKVEHMLFCWZAXGYIPSUQ"],  
+        "RCEs" : ["ABCDEFGHIJKLMNOPQRSTUVWXYZ", "RDOBJNTKVEHMLFCWZAXGYIPSUQ"],
+        "ABC"  : ["ABCDEFGHIJKLMNÑOPQRSTUVWXYZ", "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ"],
+        "RRAMON":["ABCDEFGHIJKLMNÑOPQRSTUVWXYZ", "KTIWEZJVCGAXQSYURMPNBOHDLÑF"]  
     }
 
     arrastrarRotorSiguiente = False
@@ -227,16 +229,20 @@ def mainApp ():
     r1 = Rotor()
     r2 = Rotor()
     r3 = Rotor()
+    r4 = Rotor()
+    r5 = Rotor()
     reflector = Rotor(1)
-    r1.montarConexiones("I")
+    r1.montarConexiones("IV")
     r2.montarConexiones("II")
     r3.montarConexiones("III")
+    r4.montarConexiones("I")
+    r5.montarConexiones("II")
     reflector.montarConexiones("RB")
     engranaje = Engranaje()
-    engranaje.configEngranaje([r1,r2,r3,reflector],"AAAA")
+    engranaje.configEngranaje([r1,r2,r3,r4,r5,reflector],"ABCAAA")
 
     # Codificamos el texto.
-    textoplano="HOLAMUNDO"
+    textoplano="HOLAMUNDOAAAAAAAAAAAAAAAAAAAAPARECEQUESIFUNCIONA"
     print("Texto plano:")
     print(textoplano)
     textoencriptado = ""
@@ -246,11 +252,11 @@ def mainApp ():
     print(textoencriptado)
     
     # Reconfiguramos la máquina a su posición inicial.
-    r1.montarConexiones("I")
+    r1.montarConexiones("IV")
     r2.montarConexiones("II")
     r3.montarConexiones("III")
     reflector.montarConexiones("RB")
-    engranaje.configEngranaje([r1,r2,r3,reflector],"AAAA")
+    engranaje.configEngranaje([r1,r2,r3,r4,r5,reflector],"ABCAAA")
     
     # Volvemos a codificar el texto encriptado.
     textodesencriptado = ""
