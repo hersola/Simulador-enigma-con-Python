@@ -125,20 +125,20 @@ class Rotor():
     def codifica(self, indice):
         indice = (indice + self.indicePosActual) % len(self.conexion[0])
         letra = self.conexion[0][indice]
-        indice_izda = self.conexion[1].index(letra)
-        return indice_izda
+        indice_dcha = self.conexion[1].index(letra) - self.indicePosActual
+        return indice_dcha
 
     def decodifica(self, indice):
-        indice = (indice - self.indicePosActual) % len(self.conexion[0])
+        indice = (indice + self.indicePosActual) % len(self.conexion[0])
         letra = self.conexion[1][indice]
-        indice_izda = self.conexion[0].index(letra)-self.indicePosActual
+        indice_izda = self.conexion[0].index(letra) - self.indicePosActual
         return indice_izda
     
     def avanza(self):
         if self.indicePosActual == self.indicePosArrastre:
             self.arrastrarSiguiente = True
         self.pasos += 1
-        self.indicePosActual = self.indicePosActual + 1 % len(self.conexion[0])
+        self.indicePosActual = (self.indicePosActual + 1) % len(self.conexion[0])
     
     def __creaRotor(self, alfabeto):
         conexiones=[alfabeto,""]
@@ -209,7 +209,7 @@ if __name__ == "__main__":
     # Prueba enigma.
 
     maquina = Enigma()
-    textoPlano = "PUESVAMOSQUENOSVAMOSAAAAAAAAAAAAAAAAVVVVVVVVVVVVVVVVVEEEEEEEEEEEEERRRRRRRRRRRRRRRPARECEQUESI"
+    textoPlano = "PUESVAMOSQUENOSVAMOSAAAAAAAAAAAAAAAAVERRRRRRRRRRRRRRRQUEPARECEQUESIFUNCIONAYA"
     textoEncriptado = ""
     textoDesencriptado = ""
     for item in textoPlano:
