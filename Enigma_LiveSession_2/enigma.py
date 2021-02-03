@@ -214,7 +214,7 @@ if __name__ == "__main__":
     textoDesencriptado = ""
     for item in textoPlano:
         textoEncriptado += maquina.codifica(item)
-    maquina1 = Enigma() # Pendiente desarrollar la configuración y la reinicio así para las pruebas.
+    maquina1 = Enigma() # Creo otra máquina igual que la que ha codificado el texto
     for item in textoEncriptado:
         textoDesencriptado += maquina1.codifica(item)
     print("Texto plano:")
