@@ -140,6 +140,16 @@ class Rotor():
         self.pasos += 1
         self.indicePosActual = (self.indicePosActual + 1) % len(self.conexion[0])
     
+    def posicion(self, posicion = None):
+        if posicion != None:
+            if posicion not in self.conexion[0]:
+                posicion = self.rotor.conexion[0][0]
+            self.indicePosActual = self.conexion[0].index(posicion)
+        else:
+            posicion = self.conexion[indicePosActual]
+        return posicion
+
+    
     def __creaRotor(self, alfabeto):
         conexiones=[alfabeto,""]
         listaAux = list(alfabeto)
@@ -186,40 +196,64 @@ class Enigma():
     '''
     __rotorPrefijado = ["ABCDEFGHIJKLMNÑOPQRSTUVWXYZ", "ÑMHCKWNOJFZEPSUBGRXAIQTVYLD"]
     __refletorPrefijado = ["ABCDEFGHIJKLMNÑOPQRSTUVWXYZ", "ZYXWVUTSRQPOÑNMLKJIHGFEDCBA"]
+    __textoProcesado = ""
+    listaErrores = {}
 
     def __init__(self, rotor=None, reflector=None, configIni=None):
         self.rotor = Rotor(self.__rotorPrefijado[0],self.__rotorPrefijado[1])
         self.reflector = Reflector(self.__refletorPrefijado)
     
     def codifica(self, clave):
-        self.rotor.avanza()
-        indiceClave = self.rotor.conexion[0].index(clave) # Convierte la letra en el indice para mandar al rotor
-        indiceClave = self.rotor.codifica(indiceClave) 
-        indiceClave = self.reflector.refleja(indiceClave)
-        indiceClave = self.rotor.decodifica(indiceClave)
-        if self.rotor.arrastrarSiguiente:
-            # Si ubiera mas rotores los tendríamos que avanzar aquí.
-            self.rotor.arrastrarSiguiente = False
-        clave = self.rotor.conexion[0][indiceClave % len(self.rotor.conexion[0])] # Convierte la salida del circuito en una letra.
-        return clave
+        
+        for letra in clave:
+            if letra in self.__rotorPrefijado[0]:
+                self.rotor.avanza()
+                indiceLetra = self.rotor.conexion[0].index(letra) # Convierte la letra en el indice para mandar al rotor
+                indiceLetra = self.rotor.codifica(indiceLetra) 
+                indiceLetra = self.reflector.refleja(indiceLetra)
+                indiceClave = self.rotor.decodifica(indiceLetra)
+                if self.rotor.arrastrarSiguiente:
+                    # Si ubiera mas rotores los tendríamos que avanzar aquí.
+                    self.rotor.arrastrarSiguiente = False
+                letraCodificada = self.rotor.conexion[0][indiceClave % len(self.rotor.conexion[0])] # Convierte la salida del circuito en una letra.
+                self.__textoProcesado += letraCodificada
+            else:
+                if letra in self.listaErrores:
+                    self.listaErrores[letra] += 1
+                else:
+                    self.listaErrores.update({letra:1})
+        return self.__textoProcesado
+    
+    def configuraRotor(self,posicion = None):
+        if posicion != None:
+            if posicion not in self.rotor.conexion[0]:
+                posicion = self.rotor.conexion[0][0]
+            self.rotor.posicion(posicion)
+            self.__textoProcesado = ""
+            self.listaErrores = {}
+        else:
+            posicion = self.rotor.conexion[self.rotor.indicePosActual]
+        return posicion
 
 if __name__ == "__main__":
-    
-    
-    # Prueba enigma.
 
+    # Prueba enigma.
     maquina = Enigma()
-    textoPlano = "PUESVAMOSQUENOSVAMOSAAAAAAAAAAAAAAAAVERRRRRRRRRRRRRRRQUEPARECEQUESIFUNCIONAYA"
+    textoPlano = "PUESVAMOS QUE NOS VAMOS AAAAAAAAAAAAAAAAVERRRRRRRRRRRRRRR QUE PARECE QUE SI FUNCIONA YA @.-733"
     textoEncriptado = ""
     textoDesencriptado = ""
-    for item in textoPlano:
-        textoEncriptado += maquina.codifica(item)
-    maquina1 = Enigma() # Creo otra máquina igual que la que ha codificado el texto
-    for item in textoEncriptado:
-        textoDesencriptado += maquina1.codifica(item)
+    
+    # Aquí se codifica el texto.
+    textoEncriptado = maquina.codifica(textoPlano)
     print("Texto plano:")
     print(textoPlano)
     print("Texto encriptado:")
     print(textoEncriptado)
+    print("Caracteres no procesados: {}".format(maquina.listaErrores))
+    
+    # Aquí se resetea la máquina a la posición inicial y se vuelve a codificar el texto ya encriptado.
+    maquina.configuraRotor("A") # Esto implica resetear la máquina.
+    textoDesencriptado = maquina.codifica(textoEncriptado)
     print("Texto decodificado:")
     print(textoDesencriptado)
+    print("Caracteres no procesados: {}".format(maquina.listaErrores))
